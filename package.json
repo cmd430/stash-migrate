@@ -1,0 +1,16 @@
+{
+  "name": "stash-migrate",
+  "version": "1.0.0",
+  "description": "Migrate stash v1 to stash v2",
+  "main": "migrate.js",
+  "type": "module",
+  "devDependencies": {},
+  "dependencies": {
+    "glob": "^10.3.10"
+  },
+  "scripts": {
+    "start": "node migrate.js"
+  },
+  "author": "Bradley 'cmd430' Treweek",
+  "license": "ISC"
+}
