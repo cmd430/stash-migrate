@@ -79,10 +79,6 @@ for (const file of oldDB.prepare(files).all()) {
 
   info('Processing file', id)
 
-  const stream = createReadStream(resolve(filepath))
-  const [ fileWebStream, thumbnailWebStream ] = Readable.toWeb(stream).tee()
-  const filestream = Readable.fromWeb(fileWebStream)
-  const thumbnailStream = Readable.fromWeb(thumbnailWebStream)
   const filename = `${name}${getExtname(name, mimetype)}`
   const { filename: storageFilename, thumbnailFilename: storageThumbnailFilename } = fastify.storage.create(uploadedBy, filename)
 
@@ -90,11 +86,11 @@ for (const file of oldDB.prepare(files).all()) {
     username: uploadedBy,
     file: {
       filename: storageFilename,
-      filestream: filestream
+      filestream: createReadStream(resolve(filepath))
     },
     thumbnail: {
       filename: storageThumbnailFilename,
-      filestream: await generateThumbnail(mimetype, thumbnailStream)
+      filestream: createReadStream(resolve('..', 'thumbnail', `${id}.webp`))
     }
   })
 
