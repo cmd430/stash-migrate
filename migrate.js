@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto'
 import { resolve, extname } from 'node:path'
 import { Readable } from 'node:stream'
 import { createReadStream } from 'node:fs'
+import { access } from 'node:fs/promises'
 import { glob } from 'glob'
 import Database from 'better-sqlite3'
 import { Log } from 'cmd430-utils'
@@ -9,7 +10,7 @@ import { config } from '../config/config.js'
 import { getDatabaseInterface } from '../interfaces/database.js'
 import { getStorageInterface } from '../interfaces/storage.js'
 import generateThumbnail from '../utils/generateThumbnail.js'
-import { getMimeExtension } from '../utils/mimetype.js'
+import { getMimeExtension, mimetypeFilter } from '../utils/mimetype.js'
 
 // eslint-disable-next-line no-unused-vars
 const { log, debug, info, warn, error } = new Log('Migrate')
@@ -82,6 +83,22 @@ for (const file of oldDB.prepare(files).all()) {
   const filename = `${name}${getExtname(name, mimetype)}`
   const { filename: storageFilename, thumbnailFilename: storageThumbnailFilename } = fastify.storage.create(uploadedBy, filename)
 
+  let thumbnailPath = resolve('storage', 'thumbnail', `${id}.webp`)
+
+  try {
+    await access(thumbnailPath)
+  } catch {
+    const defaultThumbnailPaths = {
+      'image': resolve('./public/img/thumbnails/image.webp'),
+      'video': resolve('./public/img/thumbnails/video.webp'),
+      'audio': resolve('./public/img/thumbnails/audio.webp'),
+      'text': resolve('./public/img/thumbnails/text.webp')
+    }
+    const { type } = new MIMEType(mimetypeFilter(mimetype))
+
+    thumbnailPath = defaultThumbnailPaths[type]
+  }
+
   const { filesize } = await fastify.storage.write({
     username: uploadedBy,
     file: {
@@ -90,7 +107,7 @@ for (const file of oldDB.prepare(files).all()) {
     },
     thumbnail: {
       filename: storageThumbnailFilename,
-      filestream: createReadStream(resolve('storage', 'thumbnail', `${id}.webp`))
+      filestream: createReadStream(thumbnailPath)
     }
   })
 
