@@ -90,7 +90,7 @@ for (const file of oldDB.prepare(files).all()) {
     },
     thumbnail: {
       filename: storageThumbnailFilename,
-      filestream: createReadStream(resolve('..', 'thumbnail', `${id}.webp`))
+      filestream: createReadStream(resolve('storage', 'thumbnail', `${id}.webp`))
     }
   })
 
